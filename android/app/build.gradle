@@ -28,7 +28,7 @@ if (flutterVersionName == null) {
 android {
     namespace = "com.twibee.app"
     compileSdk = 36
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "30.0.14904198"
 
     compileOptions {
         coreLibraryDesugaringEnabled true
