@@ -1,0 +1,586 @@
+﻿diff --git a/lib/screens/channel_info_screen.dart b/lib/screens/channel_info_screen.dart
+index cdbb65f..8697d1c 100644
+--- a/lib/screens/channel_info_screen.dart
++++ b/lib/screens/channel_info_screen.dart
+@@ -1,12 +1,17 @@
++import 'dart:io';
++import 'package:image_picker/image_picker.dart';
++import 'dart:ui' show lerpDouble;
+ import 'package:flutter/material.dart';
+ import 'package:flutter/services.dart';
+ import '../theme.dart';
+ import '../services/channel_service.dart';
++import '../services/channel_preferences.dart';
+ import 'channel_qr_screen.dart';
+ import 'channel_subscribers_screen.dart';
+ import 'channel_admins_screen.dart';
+ import 'invite_share_screen.dart';
+ import 'channel_settings_screen.dart';
++import 'select_group_members_screen.dart';
+ 
+ class ChannelInfoScreen extends StatefulWidget {
+   final Map<String, dynamic> channel;
+@@ -27,6 +32,11 @@ class _ChannelInfoScreenState extends State<ChannelInfoScreen> {
+   bool _isAdmin = false;
+   int _subscriberCount = 0;
+ 
++  final GlobalKey _liveStreamKey = GlobalKey();
++  final GlobalKey _muteKey = GlobalKey();
++  final GlobalKey _discussKey = GlobalKey();
++  final GlobalKey _moreKey = GlobalKey();
++
+   @override
+   void initState() {
+     super.initState();
+@@ -44,476 +54,98 @@ class _ChannelInfoScreenState extends State<ChannelInfoScreen> {
+       _channelService.getSubscribers(channelId).then((subs) => subs.length),
+     ]);
+ 
+-    if (mounted) {
+-      setState(() {
+-        _isSubscribed = results[0] as bool;
+-        _isAdmin = results[1] as bool;
+-        _subscriberCount = results[2] as int;
+-        _isOwner = _channel['owner_id'] == currentUserId;
+-        _isLoading = false;
+-      });
+-    }
+-  }
+-
+-  // ignore: unused_element
+-  Future<void> _toggleSubscription() async {
+-    final channelId = _channel['id'] as String;
+-    try {
+-      if (_isSubscribed) {
+-        await _channelService.unsubscribe(channelId);
+-        setState(() {
+-          _isSubscribed = false;
+-        });
+-        if (mounted) {
+-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Left channel.')));
+-          Navigator.pop(context, _channel); // pop info
+-          Navigator.pop(context, true); // pop chat to return to list
+-        }
+-      } else {
+-        await _channelService.subscribe(channelId);
+-        setState(() {
+-          _isSubscribed = true;
+-        });
+-        if (mounted) {
+-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Joined channel!')));
+-        }
+-      }
+-    } catch (e) {
+-      if (mounted) {
+-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+-      }
+-    }
+-  }
+-
+-  Future<void> _deleteChannel() async {
+-    try {
+-      await _channelService.deleteChannel(_channel['id']);
+-      if (mounted) {
+-        // Pop twice: once to close info screen, once to close chat screen, returning to home/channels screen.
+-        Navigator.pop(context, true);
+-        Navigator.pop(context, true);
+-      }
+-    } catch (e) {
+-      if (mounted) {
+-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+-      }
+-    }
+-  }
+-
+-  // ignore: unused_element
+-  void _showDeleteChannelDialog() {
+-    showDialog(
+-      context: context,
+-      builder: (ctx) => AlertDialog(
+-        title: const Text('Delete Channel'),
+-        content: const Text('Are you sure you want to permanently delete this channel? This action cannot be undone.'),
+-        actions: [
+-          TextButton(
+-            onPressed: () => Navigator.pop(ctx),
+-            child: const Text('Cancel'),
+-          ),
+-          TextButton(
+-            onPressed: () {
+-              Navigator.pop(ctx);
+-              _deleteChannel();
+-            },
+-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+-          ),
+-        ],
+-      ),
+-    );
+-  }
+-
+-  @override
+-  Widget build(BuildContext context) {
+-    if (_isLoading) {
+-      return const Scaffold(
+-        backgroundColor: AppColors.white,
+-        body: Center(child: CircularProgressIndicator(color: AppColors.orange)),
+-      );
+-    }
+-
+-    final name = _channel['name'] ?? 'Channel';
+-    final description = _channel['description'] ?? '';
+-    final avatarUrl = _channel['avatar_url'];
+-
+-    return PopScope(
+-      canPop: true,
+-      onPopInvoked: (didPop) {
+-        if (!didPop) Navigator.pop(context, _channel);
+-      },
+-      child: DefaultTabController(
+-        length: 4,
+-        child: Scaffold(
+-          backgroundColor: AppColors.lightGrey,
+-        body: NestedScrollView(
+-          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+-            SliverAppBar(
+-              expandedHeight: 300,
+-              pinned: true,
+-              backgroundColor: AppColors.orange,
+-              iconTheme: const IconThemeData(color: Colors.white),
+-              actions: [
+-                IconButton(
+-                  icon: const Icon(Icons.qr_code, color: Colors.white),
+-                  onPressed: () {
+-                    Navigator.push(context, MaterialPageRoute(
+-                      builder: (_) => ChannelQrScreen(channel: _channel)
+-                    ));
+-                  },
+-                ),
+-                if (_isOwner)
+-                  IconButton(
+-                    icon: const Icon(Icons.edit, color: Colors.white),
+-                    onPressed: () async {
+-                      final updated = await Navigator.push(
+-                        context,
+-                        MaterialPageRoute(builder: (_) => ChannelSettingsScreen(channel: _channel)),
+-                      );
+-                      if (updated == true) {
+-                        final refreshed = await _channelService.getChannel(_channel['id']);
+-                        setState(() => _channel = refreshed);
+-                      }
+-                    },
+-                  ),
+-                PopupMenuButton<String>(
+-                  icon: const Icon(Icons.more_vert, color: Colors.white),
+-                  onSelected: (val) async {
+-                    if (val == 'copy_link') {
+-                      await Clipboard.setData(ClipboardData(text: 'missme://channel/${_channel['id']}'));
+-                      if (mounted) {
+-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Link copied!')));
+-                      }
+-                    } else if (val == 'settings') {
+-                      Navigator.push(context, MaterialPageRoute(builder: (_) => ChannelSettingsScreen(channel: _channel)));
+-                    }
+-                  },
+-                  itemBuilder: (_) => [
+-                    if (_isOwner || _isAdmin)
+-                      const PopupMenuItem(value: 'settings', child: Text('Channel Settings')),
+-                  ],
+-                ),
+-              ],
+-              flexibleSpace: FlexibleSpaceBar(
+-                title: Text(name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, shadows: [Shadow(color: Colors.black45, blurRadius: 4)])),
+-                background: Stack(
+-                  fit: StackFit.expand,
+-                  children: [
+-                    avatarUrl != null
+-                        ? Image.network(avatarUrl, fit: BoxFit.cover)
+-                        : Container(
+-                            color: AppColors.orange,
+-                            child: Center(
+-                              child: Text(
+-                                name.isNotEmpty ? name[0].toUpperCase() : 'C',
+-                                style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 100),
+-                              ),
+-                            ),
+-                          ),
+-                    const DecoratedBox(
+-                      decoration: BoxDecoration(
+-                        gradient: LinearGradient(
+-                          begin: Alignment(0.0, 0.5),
+-                          end: Alignment.bottomCenter,
+-                          colors: [Colors.transparent, Colors.black54],
+-                        ),
+-                      ),
+-                    ),
+-                    if (_isOwner || _isAdmin)
+-                      Positioned(
+-                        bottom: 16,
+-                        right: 16,
+-                        child: FloatingActionButton(
+-                          mini: true,
+-                          backgroundColor: AppColors.orange,
+-                          child: const Icon(Icons.camera_alt, color: AppColors.white),
+-                          onPressed: () {
+-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Set photo coming soon')));
+-                          },
+-                        ),
+-                      ),
+-                  ],
+-                ),
++              child: Container(
++                decoration: BoxDecoration(
++                  gradient: LinearGradient(
++                    begin: Alignment.bottomCenter,
++                    end: Alignment.topCenter,
++                    colors: [Colors.black.withOpacity(0.7 * stretchRatio), Colors.transparent],
++                  )
++                )
+               ),
+             ),
+-            SliverToBoxAdapter(
+-              child: Column(
+-                children: [
+-            // Header Details
+-            Container(
+-              width: double.infinity,
+-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+-              color: AppColors.white,
+-              child: Column(
+-                crossAxisAlignment: CrossAxisAlignment.start,
+-                children: [
+-                  Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: AppColors.dark)),
+-                  const SizedBox(height: 4),
+-                  Text('$_subscriberCount subscribers', style: const TextStyle(color: AppColors.grey2, fontSize: 15)),
+-                  if (description.isNotEmpty) ...[
+-                    const SizedBox(height: 16),
+-                    Text(description, style: const TextStyle(color: AppColors.dark, fontSize: 16)),
+-                  ],
+-                ],
+-              ),
+-            ),
+-            const SizedBox(height: 12),
+ 
+-            // Admin / Owner Options
+-            if (_isOwner || _isAdmin) ...[
+-              Container(
+-                color: AppColors.white,
++          Positioned(
++            top: currentTextTop - (collapseRatio * 100),
++            left: stretchRatio > 0 ? 16.0 : 0.0,
++            right: stretchRatio > 0 ? 16.0 : 0.0,
++            child: Opacity(
++              opacity: normalContentOpacity,
++              child: Align(
++                alignment: currentTextAlignment,
+                 child: Column(
++                  mainAxisSize: MainAxisSize.min,
++                  crossAxisAlignment: stretchRatio > 0.5 ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+                   children: [
+-                    ListTile(
+-                      leading: const Icon(Icons.people_alt, color: AppColors.orange),
+-                      title: const Text('Subscribers'),
+-                      trailing: const Icon(Icons.chevron_right, color: AppColors.grey2),
+-                      onTap: () {
+-                        Navigator.push(context, MaterialPageRoute(
+-                          builder: (_) => ChannelSubscribersScreen(channel: _channel, isAdminOrOwner: _isOwner || _isAdmin),
+-                        ));
+-                      },
+-                    ),
+-                    const Divider(height: 1),
+-                    ListTile(
+-                      leading: const Icon(Icons.admin_panel_settings, color: AppColors.orange),
+-                      title: const Text('Administrators'),
+-                      trailing: const Icon(Icons.chevron_right, color: AppColors.grey2),
+-                      onTap: () {
+-                        Navigator.push(context, MaterialPageRoute(
+-                          builder: (_) => ChannelAdminsScreen(channel: _channel, isOwner: _isOwner),
+-                        ));
+-                      },
+-                    ),
++                    Text(name, style: TextStyle(
++                      fontSize: 20 + (4 * stretchRatio), 
++                      fontWeight: FontWeight.bold, 
++                      color: stretchRatio > 0.5 ? Colors.white : AppColors.dark
++                    )),
++                    const SizedBox(height: 4),
++                    Text('$subscriberCount subscriber${subscriberCount == 1 ? '' : 's'}', style: TextStyle(
++                      fontSize: 13 + (1 * stretchRatio), 
++                      color: stretchRatio > 0.5 ? Colors.white70 : AppColors.grey2
++                    )),
+                   ],
+                 ),
+               ),
+-              const SizedBox(height: 12),
+-            ],
+-            
+-            // Shared Options (Admin & Users)
+-            Container(
+-              color: AppColors.white,
+-              child: Column(
+-                children: [
+-                  ListTile(
+-                    leading: const Icon(Icons.link, color: AppColors.orange),
+-                    title: const Text('Invite via Link'),
+-                    trailing: const Icon(Icons.chevron_right, color: AppColors.grey2),
+-                    onTap: () {
+-                      Navigator.push(context, MaterialPageRoute(
+-                        builder: (_) => InviteShareScreen(
+-                          id: _channel['id'],
+-                          isChannel: true,
+-                          isAdmin: _isAdmin || _isOwner,
+-                          name: _channel['name'] ?? 'Channel',
+-                        ),
+-                      ));
+-                    },
+-                  ),
+-                ],
+-              ),
+             ),
+-            const SizedBox(height: 12),
++          ),
+ 
+-            // User Options
+-            Container(
+-              color: AppColors.white,
+-              child: Column(
+-                children: [
+-                  ListTile(
+-                    leading: const Icon(Icons.notifications_outlined, color: AppColors.dark),
+-                    title: const Text('Notifications'),
+-                    trailing: const Text('Enabled', style: TextStyle(color: AppColors.grey2)),
+-                    onTap: () {
+-                      showModalBottomSheet(
+-                        context: context,
+-                        builder: (ctx) => SafeArea(
+-                          child: Column(
+-                            mainAxisSize: MainAxisSize.min,
+-                            children: [
+-                              ListTile(
+-                                leading: const Icon(Icons.volume_off, color: AppColors.dark),
+-                                title: const Text('Mute for...'),
+-                                onTap: () {
+-                                  Navigator.pop(ctx);
+-                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Mute duration picker coming soon')));
+-                                },
+-                              ),
+-                              ListTile(
+-                                leading: const Icon(Icons.notifications_off, color: AppColors.dark),
+-                                title: const Text('Disable sound'),
+-                                onTap: () {
+-                                  Navigator.pop(ctx);
+-                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sound disabled')));
+-                                },
+-                              ),
+-                              ListTile(
+-                                leading: const Icon(Icons.notifications_paused, color: AppColors.dark),
+-                                title: const Text('Forever mute'),
+-                                onTap: () {
+-                                  Navigator.pop(ctx);
+-                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Muted forever')));
+-                                },
+-                              ),
+-                            ],
+-                          ),
+-                        ),
+-                      );
+-                    },
+-                  ),
+-                  if (_isOwner || _isAdmin) ...[
+-                    const Divider(height: 1),
+-                    ListTile(
+-                      leading: const Icon(Icons.cleaning_services_outlined, color: AppColors.dark),
+-                      title: const Text('Clear Messages'),
+-                      onTap: () {
+-                        // Implement clear messages
+-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Clear messages coming soon')));
+-                      },
+-                    ),
+-                    const Divider(height: 1),
+-                    ListTile(
+-                      leading: const Icon(Icons.auto_delete_outlined, color: AppColors.dark),
+-                      title: const Text('Enable Auto-delete'),
+-                      trailing: const Text('Off', style: TextStyle(color: AppColors.grey2)),
+-                      onTap: () {
+-                        showModalBottomSheet(
+-                          context: context,
+-                          builder: (ctx) => SafeArea(
+-                            child: Column(
+-                              mainAxisSize: MainAxisSize.min,
+-                              children: [
+-                                const ListTile(
+-                                  title: Text('Auto-delete messages'),
+-                                  subtitle: Text('Automatically delete new messages sent in this channel after a certain period of time.'),
+-                                ),
+-                                const Divider(),
+-                                ListTile(title: const Text('24 hours'), onTap: () => Navigator.pop(ctx)),
+-                                ListTile(title: const Text('1 week'), onTap: () => Navigator.pop(ctx)),
+-                                ListTile(title: const Text('1 month'), onTap: () => Navigator.pop(ctx)),
+-                                ListTile(title: const Text('Custom...'), onTap: () => Navigator.pop(ctx)),
+-                              ],
+-                            ),
+-                          ),
+-                        );
+-                      },
+-                    ),
+-                  ],
+-                  if (!_isOwner && !_isAdmin) ...[
+-                    const Divider(height: 1),
+-                    ListTile(
+-                      leading: const Icon(Icons.report_problem_outlined, color: Colors.red),
+-                      title: const Text('Report Channel', style: TextStyle(color: Colors.red)),
+-                      onTap: () {
+-                        // TODO: Implement Report
+-                      },
+-                    ),
+-                    const Divider(height: 1),
+-                    ListTile(
+-                      leading: const Icon(Icons.exit_to_app, color: Colors.red),
+-                      title: const Text('Leave Channel', style: TextStyle(color: Colors.red)),
+-                      onTap: () async {
+-                        try {
+-                          await _channelService.removeSubscriber(_channel['id'], _channelService.currentUserId);
+-                          if (mounted) {
+-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('You left the channel')));
+-                            Navigator.pop(context); // Pop info screen
+-                            Navigator.pop(context); // Pop chat screen
+-                          }
+-                        } catch (e) {
+-                          if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to leave: $e')));
+-                        }
+-                      },
+-                    ),
+-                  ],
+-                ],
+-              ),
+-            ),
+-                ],
++          if (description.isNotEmpty)
++            Positioned(
++              top: normalTextTop + 50 - (collapseRatio * 150),
++              left: 24,
++              right: 24,
++              child: Opacity(
++                opacity: descOpacity,
++                child: Text(description, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14, color: AppColors.dark)),
+               ),
+             ),
+-            const SliverToBoxAdapter(child: SizedBox(height: 12)),
+-            SliverPersistentHeader(
+-              pinned: true,
+-              delegate: _SliverAppBarDelegate(
+-                const TabBar(
+-                  labelColor: AppColors.orange,
+-                  unselectedLabelColor: AppColors.grey2,
+-                  indicatorColor: AppColors.orange,
+-                  tabs: [
+-                    Tab(text: 'Media'),
+-                    Tab(text: 'Files'),
+-                    Tab(text: 'Music'),
+-                    Tab(text: 'Links'),
++
++          Positioned(
++            top: 0,
++            left: 0,
++            right: 0,
++            height: minExtent,
++            child: Row(
++              children: [
++                const SizedBox(width: 4),
++                IconButton(
++                  icon: const Icon(Icons.arrow_back, color: AppColors.orange),
++                  onPressed: onBack,
++                ),
++                Expanded(
++                  child: Opacity(
++                    opacity: collapseRatio,
++                    child: Text(name, style: const TextStyle(color: AppColors.dark, fontSize: 18, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
++                  ),
++                ),
++                IconButton(
++                  icon: const Icon(Icons.qr_code, color: AppColors.orange),
++                  onPressed: onQr,
++                ),
++                if (isOwner)
++                  IconButton(
++                    icon: const Icon(Icons.edit, color: AppColors.orange),
++                    onPressed: onEdit,
++                  ),
++                PopupMenuButton<String>(
++                  icon: const Icon(Icons.more_vert, color: AppColors.orange),
++                  onSelected: onMoreSelected,
++                  itemBuilder: (_) => [
++                    const PopupMenuItem(value: 'copy_link', child: Text('Copy Link')),
++                    if (isOwner || isAdmin)
++                      const PopupMenuItem(value: 'settings', child: Text('Channel Settings')),
+                   ],
+                 ),
+-              ),
++                const SizedBox(width: 4),
++              ],
+             ),
+-          ],
+-          body: TabBarView(
+-            children: [
+-              // Media Tab
+-              _buildMediaTab(),
+-              // Files Tab
+-              const Center(child: Text('No files yet', style: TextStyle(color: AppColors.grey2))),
+-              // Music Tab
+-              const Center(child: Text('No music yet', style: TextStyle(color: AppColors.grey2))),
+-              // Links Tab
+-              const Center(child: Text('No links yet', style: TextStyle(color: AppColors.grey2))),
+-            ],
+           ),
+-        ), // NestedScrollView
+-      ), // Scaffold
+-      ), // DefaultTabController
+-    ); // PopScope
+-  }
+-
+-  Widget _buildMediaTab() {
+-    // In a real app, query `messages` where chat_id = channel_id and media_url is not null.
+-    // For now, we show a placeholder grid that looks like the Telegram media grid.
+-    return GridView.builder(
+-      padding: const EdgeInsets.all(2),
+-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+-        crossAxisCount: 3,
+-        crossAxisSpacing: 2,
+-        mainAxisSpacing: 2,
++        ],
+       ),
+-      itemCount: 9, // Placeholder count
+-      itemBuilder: (context, index) {
+-        return Container(
+-          color: AppColors.grey.withValues(alpha: 0.3),
+-          child: const Icon(Icons.image, color: AppColors.white, size: 40),
+-        );
+-      },
+-    );
+-  }
+-}
+-
+-class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
+-  _SliverAppBarDelegate(this._tabBar);
+-
+-  final TabBar _tabBar;
+-
+-  @override
+-  double get minExtent => _tabBar.preferredSize.height;
+-  @override
+-  double get maxExtent => _tabBar.preferredSize.height;
+-
+-  @override
+-  Widget build(
+-      BuildContext context, double shrinkOffset, bool overlapsContent) {
+-    return Container(
+-      color: AppColors.white,
+-      child: _tabBar,
+     );
+   }
+-
+-
+-
+-  @override
+-  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
+-    return false;
+-  }
+ }

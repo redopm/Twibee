@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - Twibee</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #1A1A1A;
+            --text-main: #FFFFFF;
+            --text-muted: #999999;
+            --primary: #FF6B00;
+        }
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-muted);
+            font-family: 'Outfit', sans-serif;
+            line-height: 1.8;
+            padding: 2rem 5%;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.02);
+            padding: 3rem;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        h1, h2 { color: var(--text-main); }
+        h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        h2 { font-size: 1.5rem; margin-top: 2rem; margin-bottom: 1rem; }
+        a { color: var(--primary); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .back-link { display: inline-block; margin-bottom: 2rem; }
+        p { margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Home</a>
+        <h1>Privacy Policy</h1>
+        <p><strong>Effective Date: July 2026</strong><br>
+        <strong>Last Updated: July 2026</strong></p>
+
+        <h2>1. Introduction</h2>
+        <p>Welcome to Twibee ("we," "our," or "us"). We value your privacy and are committed to protecting your personal data. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use the Twibee mobile application available on the Google Play Store.</p>
+        <p>By downloading, installing, or using Twibee, you agree to the collection and use of information in accordance with this policy. If you do not agree with the terms of this Privacy Policy, please do not access or use the application.</p>
+
+        <h2>2. Information We Collect</h2>
+        <p>To provide a premium and functional real-time voice/video calling and chat experience, we collect certain data points. We only collect information that is strictly necessary for the app's core operations.</p>
+        <p><strong>Phone Number:</strong> When you register or log in, we verify your identity using Firebase Phone Authentication. Your phone number is collected and securely stored as your primary identifier.</p>
+        <p><strong>User Profile Information:</strong> This includes your chosen display name and profile picture avatar, which are visible to other users you communicate with.</p>
+        <p><strong>Call Logs & History:</strong> We store metadata regarding your calls (timestamp, duration, caller/receiver identities, and call status like missed or connected) to display your "Recent Calls" log inside the app.</p>
+        <p><strong>Chat Messages:</strong> Text messages, timestamps, and delivery statuses are securely stored to enable active, persistent chat sessions between you and your contacts.</p>
+
+        <h2>3. Device Permissions Required</h2>
+        <p>To operate smoothly on Android devices, Twibee explicitly requests the following hardware and software permissions. You can grant or revoke these permissions at any time via your device settings, though revoking them may disable core features:</p>
+        <p><strong>Camera Permission:</strong> Required strictly during active video calls so your video stream can be captured and transmitted to the recipient. We do NOT record or store video frames.</p>
+        <p><strong>Microphone Permission:</strong> Required during active voice and video calls to capture your audio stream. Audio data is processed strictly in real-time and is NEVER recorded or stored on our servers.</p>
+        <p><strong>Push Notifications Permission:</strong> Required to alert you instantly about incoming voice calls, video calls, and text messages when the app runs in the background or the device is locked.</p>
+
+        <h2>4. Third-Party Infrastructure & SDKs</h2>
+        <p>Twibee utilizes trusted, industry-standard third-party service providers to power its real-time capabilities. These processors handle data in accordance with their respective privacy standards:</p>
+        <p><strong>Firebase (Google LLC):</strong> Used for secure Phone OTP Authentication, Push Notification delivery, and static website hosting.</p>
+        <p><strong>Supabase Inc:</strong> Functions as our secure cloud backend database. All your user profile mappings, chat histories, and call log metadata are safely housed within Supabase.</p>
+        <p><strong>ZegoCloud SDK:</strong> Powers our core voice and video streaming infrastructure. Media data passing through ZegoCloud is transient, secure, and never saved permanently.</p>
+
+        <h2>5. Data Retention & Security</h2>
+        <p>We implement strict security measures to safeguard your personal data from unauthorized access or loss. Your chat data and call logs are stored securely in our cloud database. We retain your personal data only for as long as your account remains active.</p>
+
+        <h2>6. Data & Account Deletion Mandate (Google Play Compliant)</h2>
+        <p>In full compliance with Google Play's Data Deletion Policy, we provide users with absolute control over their data. You can completely and permanently delete your account and all associated personal records at any time:</p>
+        <p><strong>In-App Deletion:</strong> Navigate to Settings > Account > Delete Account inside the Twibee mobile app. Confirming this action will instantly execute a permanent backend purge.</p>
+        <p><strong>External/Web Request:</strong> If you wish to request data deletion externally, email us at <a href="mailto:twibee7@gmail.com">twibee7@gmail.com</a>. Upon verifying your ownership of the phone number, we will permanently wipe all your records within 7 business days.</p>
+
+        <h2>7. Children's Privacy</h2>
+        <p>Twibee does not address anyone under the age of 13. We do not knowingly collect personally identifiable information from children under 13.</p>
+
+        <h2>8. Contact Us</h2>
+        <p>If you have any questions or data removal inquiries regarding this Privacy Policy, please contact our support desk directly via email at: <a href="mailto:twibee7@gmail.com">twibee7@gmail.com</a></p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "67241873922",
+    "project_id": "twibee2",
+    "storage_bucket": "twibee2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:67241873922:android:e42cca369ded8df0290d1b",
+        "android_client_info": {
+          "package_name": "com.twibee.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDNRcluY-J8qOd5kcaGKQEaPyuP4QcOU_Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

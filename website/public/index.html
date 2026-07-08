@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twibee - The Ultimate Chat App</title>
+    <meta name="description" content="Twibee is a premium, secure, and buttery smooth chat application featuring E2E encryption, group calls, and status updates.">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF6B00; /* Twibee Orange */
+            --primary-light: #FFD100; /* Twibee Yellow */
+            --bg-dark: #1A1A1A; /* Twibee Dark */
+            --bg-glass: rgba(255, 255, 255, 0.05);
+            --border-glass: rgba(255, 255, 255, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #ffffff;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Abstract Background Gradients */
+        .bg-glow {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255,107,0,0.15) 0%, rgba(26,26,26,0) 70%);
+            top: -200px;
+            left: -200px;
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(50px);
+        }
+        
+        .bg-glow-right {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(255,209,0,0.1) 0%, rgba(26,26,26,0) 70%);
+            bottom: 0;
+            right: -100px;
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(50px);
+        }
+
+        header {
+            padding: 2rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-img {
+            height: 40px;
+            border-radius: 12px;
+        }
+
+        .logo-text {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .nav-links a {
+            color: #999999;
+            text-decoration: none;
+            margin-left: 2rem;
+            font-weight: 400;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #ffffff;
+        }
+
+        main {
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 5%;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 4.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            max-width: 800px;
+        }
+
+        p.subtitle {
+            font-size: 1.25rem;
+            color: #999999;
+            max-width: 600px;
+            margin-bottom: 3rem;
+            font-weight: 300;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            color: var(--bg-dark);
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            text-decoration: none;
+            box-shadow: 0 10px 30px rgba(255, 107, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(255, 107, 0, 0.4);
+        }
+
+        .glass-card {
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            border-radius: 24px;
+            padding: 3rem;
+            margin-top: 4rem;
+            max-width: 900px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .feature-item h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: #ffffff;
+        }
+
+        .feature-item p {
+            color: #999999;
+            font-size: 0.95rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 3rem 0;
+            color: #666666;
+            font-size: 0.9rem;
+            margin-top: 4rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        footer a {
+            color: #999999;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+        footer a:hover {
+            color: var(--primary);
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 3rem; }
+            .glass-card { grid-template-columns: 1fr; gap: 1.5rem; padding: 2rem; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-glow"></div>
+    <div class="bg-glow-right"></div>
+
+    <header>
+        <div class="logo-container">
+            <img src="logo.png" alt="Twibee Logo" class="logo-img">
+            <div class="logo-text">Twibee</div>
+        </div>
+        <nav class="nav-links">
+            <a href="#features">Features</a>
+            <a href="privacy-policy.html">Privacy</a>
+            <a href="terms.html">Terms</a>
+        </nav>
+    </header>
+
+    <main>
+        <h1>Connect with the world, beautifully.</h1>
+        <p class="subtitle">Experience buttery smooth messaging, crystal clear voice and video calls, and bank-grade E2E encryption. Twibee is your ultimate communication hub.</p>
+        
+        <a href="#" class="cta-button">Download App</a>
+
+        <div class="glass-card" id="features">
+            <div class="feature-item">
+                <h3>🔒 Privacy First</h3>
+                <p>End-to-End Encryption ensures your conversations stay only between you and your loved ones.</p>
+            </div>
+            <div class="feature-item">
+                <h3>⚡ Buttery Smooth</h3>
+                <p>Designed with a premium fluid UI that feels incredibly responsive and native.</p>
+            </div>
+            <div class="feature-item">
+                <h3>🎥 HD Calls</h3>
+                <p>High quality Voice and Video calls powered by enterprise-grade infrastructure.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Twibee App. All rights reserved.</p>
+        <div style="margin-top: 1rem;">
+            <a href="privacy-policy.html">Privacy Policy</a> | 
+            <a href="terms.html">Terms of Service</a>
+        </div>
+        <p style="margin-top: 0.5rem;">Contact: twibee7@gmail.com</p>
+    </footer>
+</body>
+</html>
